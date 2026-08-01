@@ -1,0 +1,44 @@
+name: ccbc
+
+services:
+  postgres:
+    image: postgres:18-alpine
+    container_name: ccbc-postgres
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # musl has no real locale support, so the default libc provider gives
+      # byte-order sorting. ICU gives correct linguistic ordering for CMS
+      # content. Only applied when initdb runs on an empty volume.
+      POSTGRES_INITDB_ARGS: "--locale-provider=icu --icu-locale=en-US"
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # postgres:18 sets PGDATA to /var/lib/postgresql/18/docker,
+      # so the volume mounts one level up at /var/lib/postgresql.
+      - pgdata:/var/lib/postgresql
+      # Any .sql / .sh here runs once, on first init of an empty volume.
+      - ./init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  # Browser UI at http://localhost:8081
+  pgweb:
+    image: sosedoff/pgweb:0.17.0
+    container_name: ccbc-pgweb
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      # "postgres" is the service name on the compose network, not localhost.
+      PGWEB_DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+volumes:
+  pgdata:
