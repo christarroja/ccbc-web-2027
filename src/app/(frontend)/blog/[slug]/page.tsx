@@ -28,13 +28,29 @@ export default async function PostPage(props: PageProps<"/blog/[slug]">) {
 
   const hero = typeof post.heroImage === "object" ? post.heroImage : null;
   const author = typeof post.author === "object" ? post.author : null;
+  const categories = post.categories?.filter((c) => typeof c === "object") ?? [];
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-16">
       <Link href="/blog" className="text-sm text-zinc-500 hover:underline">
         ← Blog
       </Link>
-      <h1 className="mt-6 text-3xl font-semibold tracking-tight">
+      {categories.length > 0 && (
+        <nav className="mt-6 flex flex-wrap gap-2">
+          {categories.map((cat) => (
+            <Link
+              key={cat.id}
+              href={`/blog?category=${cat.slug}`}
+              className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+            >
+              {cat.title}
+            </Link>
+          ))}
+        </nav>
+      )}
+      <h1
+        className={`${categories.length > 0 ? "mt-3" : "mt-6"} text-3xl font-semibold tracking-tight`}
+      >
         {post.title}
       </h1>
       <p className="mt-2 text-sm text-zinc-500">

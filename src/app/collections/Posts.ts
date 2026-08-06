@@ -25,6 +25,13 @@ export const Posts: CollectionConfig = {
     { name: "heroImage", type: "upload", relationTo: "media" },
     { name: "content", type: "richText", required: true },
     {
+      name: "categories",
+      type: "relationship",
+      relationTo: "categories",
+      hasMany: true,
+      admin: { position: "sidebar" },
+    },
+    {
       name: "author",
       type: "relationship",
       relationTo: "users",
