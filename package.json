@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "payload generate:importmap && next build",
     "generate:importmap": "payload generate:importmap",
+    "seed": "payload run src/seed.ts",
     "start": "next start",
     "lint": "eslint"
   },

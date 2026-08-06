@@ -1,34 +1,53 @@
 import Image from "next/image";
 import Link from "next/link";
+import { notFound } from "next/navigation";
 import { getPayload } from "payload";
 import config from "@payload-config";
 
 export const metadata = { title: "Blog" };
 
+const PER_PAGE = 10;
+
 export default async function BlogIndex(props: PageProps<"/blog">) {
-  const { category } = await props.searchParams;
+  const { category, page } = await props.searchParams;
   const activeCategory = typeof category === "string" ? category : undefined;
+  // NaN, negatives and fractions all collapse to page 1.
+  const currentPage = Math.max(1, Math.floor(Number(page)) || 1);
+
+  // Keeps the category filter attached when paging, and drops noise from the URL.
+  const hrefFor = (target: number) => {
+    const params = new URLSearchParams();
+    if (activeCategory) params.set("category", activeCategory);
+    if (target > 1) params.set("page", String(target));
+    const qs = params.toString();
+    return qs ? `/blog?${qs}` : "/blog";
+  };
 
   const payload = await getPayload({ config });
-  const [{ docs }, { docs: categories }] = await Promise.all([
-    payload.find({
-      collection: "posts",
-      overrideAccess: false, // enforce the collection's published-only read access
-      sort: "-publishedAt",
-      limit: 20,
-      depth: 1, // populate heroImage for the thumbnail
-      ...(activeCategory && {
-        where: { "categories.slug": { equals: activeCategory } },
+  const [{ docs, totalPages, hasNextPage, hasPrevPage }, { docs: categories }] =
+    await Promise.all([
+      payload.find({
+        collection: "posts",
+        overrideAccess: false, // enforce the collection's published-only read access
+        sort: "-publishedAt",
+        limit: PER_PAGE,
+        page: currentPage,
+        depth: 1, // populate heroImage for the thumbnail
+        ...(activeCategory && {
+          where: { "categories.slug": { equals: activeCategory } },
+        }),
       }),
-    }),
-    payload.find({
-      collection: "categories",
-      overrideAccess: false,
-      sort: "title",
-      limit: 50,
-      depth: 0,
-    }),
-  ]);
+      payload.find({
+        collection: "categories",
+        overrideAccess: false,
+        sort: "title",
+        limit: 50,
+        depth: 0,
+      }),
+    ]);
+
+  // A page past the end is a bad URL, not an empty blog.
+  if (currentPage > 1 && docs.length === 0) notFound();
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-16">
@@ -71,7 +90,7 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
           return (
             <li key={post.id}>
               <Link href={`/blog/${post.slug}`} className="group flex gap-5">
-                {thumb?.url && (
+                {thumb?.url ? (
                   <Image
                     src={thumb.url}
                     alt={thumb.alt}
@@ -79,6 +98,14 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
                     height={120}
                     className="h-30 w-40 shrink-0 rounded-lg object-cover"
                   />
+                ) : (
+                  // No media doc means no alt text exists, so the title stands in.
+                  <div
+                    aria-hidden="true"
+                    className="flex h-30 w-40 shrink-0 items-center justify-center rounded-lg bg-zinc-100 p-3 text-center text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
+                  >
+                    {post.title}
+                  </div>
                 )}
                 <div>
                   <h2 className="text-xl font-medium group-hover:underline">
@@ -105,6 +132,39 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
           );
         })}
       </ul>
+
+      {totalPages > 1 && (
+        <nav
+          aria-label="Pagination"
+          className="mt-12 flex items-center justify-between border-t border-zinc-200 pt-6 text-sm dark:border-zinc-800"
+        >
+          {hasPrevPage ? (
+            <Link
+              href={hrefFor(currentPage - 1)}
+              rel="prev"
+              className="text-zinc-700 hover:underline dark:text-zinc-300"
+            >
+              ← Previous
+            </Link>
+          ) : (
+            <span />
+          )}
+          <span className="text-zinc-500">
+            Page {currentPage} of {totalPages}
+          </span>
+          {hasNextPage ? (
+            <Link
+              href={hrefFor(currentPage + 1)}
+              rel="next"
+              className="text-zinc-700 hover:underline dark:text-zinc-300"
+            >
+              Next →
+            </Link>
+          ) : (
+            <span />
+          )}
+        </nav>
+      )}
     </main>
   );
 }
