@@ -24,6 +24,12 @@
 .DS_Store
 *.pem
 
+# payload local uploads — user content, never source
+/media/
+
+# cloudflare / wrangler local state
+/.wrangler/
+
 # debug
 npm-debug.log*
 yarn-debug.log*
