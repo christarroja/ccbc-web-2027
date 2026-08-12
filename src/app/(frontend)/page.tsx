@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import { HOME_SLUG } from "@/lib/pages";
-import { getPageByPath, pageMetadata } from "./pageData";
-import { RenderBlocks } from "./components/RenderBlocks";
+import { getPageByPath, getPagesLayout, pageMetadata } from "./pageData";
+import { RenderSections } from "./components/RenderBlocks";
 
 export const dynamic = "force-dynamic";
 
@@ -10,12 +10,15 @@ export async function generateMetadata() {
 }
 
 export default async function Home() {
-  const page = await getPageByPath([HOME_SLUG]);
+  const [page, layout] = await Promise.all([
+    getPageByPath([HOME_SLUG]),
+    getPagesLayout(),
+  ]);
   if (!page) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-16">
-      <RenderBlocks blocks={page.layout} />
+    <main>
+      <RenderSections sections={page.layout} layout={layout} />
     </main>
   );
 }

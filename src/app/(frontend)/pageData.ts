@@ -23,6 +23,11 @@ export async function getPageByPath(segments: string[]) {
   return page && matchesAncestry(page, segments) ? page : null;
 }
 
+export async function getPagesLayout() {
+  const payload = await getPayload({ config });
+  return payload.findGlobal({ slug: "pages-layout", depth: 0 });
+}
+
 export async function getArchivePosts(
   limit: number,
   categoryId?: number | null,

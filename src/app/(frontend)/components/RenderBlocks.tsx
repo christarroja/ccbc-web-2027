@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { RichText } from "@payloadcms/richtext-lexical/react";
@@ -11,9 +12,12 @@ import type {
   HeroBlock,
   MediaBlock,
   Page,
+  PagesLayout,
+  SectionBlock,
   SplitBlock,
 } from "@/payload-types";
 import { embedSrc } from "@/lib/embed";
+import { cn } from "@/lib/utils";
 import { doc, getArchivePosts } from "../pageData";
 import { converters } from "./richTextConverters";
 import { Button } from "@/components/ui/button";
@@ -24,11 +28,23 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 
+const MAX_WIDTH = {
+  "3xl": "max-w-3xl",
+  "4xl": "max-w-4xl",
+  "5xl": "max-w-5xl",
+} as const;
+
+const PADDING_X = {
+  "4": "px-4",
+  "6": "px-6",
+  "8": "px-8",
+} as const;
+
 function Hero({ heading, subheading, image }: HeroBlock) {
   const img = doc(image);
 
   return (
-    <section className="py-8">
+    <section>
       <h1 className="text-4xl font-semibold tracking-tight">{heading}</h1>
       {subheading && (
         <p className="mt-3 text-lg text-zinc-600 dark:text-zinc-400">
@@ -51,7 +67,7 @@ function Hero({ heading, subheading, image }: HeroBlock) {
 
 function Content({ richText }: ContentBlock) {
   return (
-    <div className="prose dark:prose-invert max-w-none py-8">
+    <div className="prose dark:prose-invert max-w-none">
       <RichText data={richText} converters={converters} />
     </div>
   );
@@ -62,7 +78,7 @@ function Media({ image, caption }: MediaBlock) {
   if (!img?.url || !img.width || !img.height) return null;
 
   return (
-    <figure className="py-8">
+    <figure>
       <Image
         src={img.url}
         alt={img.alt}
@@ -79,12 +95,32 @@ function Media({ image, caption }: MediaBlock) {
   );
 }
 
-function CallToAction({ heading, text, align, links }: CallToActionBlock) {
+function CallToAction({
+  heading,
+  text,
+  align,
+  background,
+  customBackground,
+  customHeading,
+  customBody,
+  links,
+}: CallToActionBlock) {
   const centered = align === "center";
+  const custom =
+    background === "custom"
+      ? customColors(customBackground, customHeading, customBody)
+      : undefined;
 
   return (
     <section
-      className={`my-8 rounded-lg bg-muted p-8 ${centered ? "text-center" : ""}`}
+      className={cn(
+        "rounded-lg p-8",
+        centered && "text-center",
+        // Anything that is not an explicit choice keeps the old default.
+        (background ?? "muted") === "muted" && "bg-muted",
+        custom && "custom-colors",
+      )}
+      style={custom}
     >
       <h2 className="text-2xl font-semibold tracking-tight">{heading}</h2>
       {text && <p className="mt-2 text-muted-foreground">{text}</p>}
@@ -111,7 +147,7 @@ function CallToAction({ heading, text, align, links }: CallToActionBlock) {
 
 function Accordion({ heading, items }: AccordionBlock) {
   return (
-    <section className="py-8">
+    <section>
       {heading && (
         <h2 className="mb-4 text-2xl font-semibold tracking-tight">
           {heading}
@@ -136,12 +172,12 @@ function Accordion({ heading, items }: AccordionBlock) {
 function Split({ verticalAlign, left, right }: SplitBlock) {
   return (
     <section
-      className={`grid gap-8 py-8 md:grid-cols-2 ${verticalAlign === "middle" ? "md:items-center" : "md:items-start"}`}
+      className={`grid gap-8 md:grid-cols-2 ${verticalAlign === "middle" ? "md:items-center" : "md:items-start"}`}
     >
-      <div>
+      <div className="flex flex-col gap-8">
         <RenderBlocks blocks={left} />
       </div>
-      <div>
+      <div className="flex flex-col gap-8">
         <RenderBlocks blocks={right} />
       </div>
     </section>
@@ -153,7 +189,7 @@ function Gallery({ heading, images }: GalleryBlock) {
   if (docs.length === 0) return null;
 
   return (
-    <section className="py-8">
+    <section>
       {heading && (
         <h2 className="mb-4 text-2xl font-semibold tracking-tight">
           {heading}
@@ -182,7 +218,7 @@ function Embed({ url, title, caption }: EmbedBlock) {
   if (!src) return null;
 
   return (
-    <figure className="py-8">
+    <figure>
       <iframe
         src={src}
         title={title}
@@ -206,7 +242,7 @@ async function Archive({ heading, limit, category }: ArchiveBlock) {
   if (posts.length === 0) return null;
 
   return (
-    <section className="py-8">
+    <section>
       {heading && (
         <h2 className="mb-4 text-2xl font-semibold tracking-tight">
           {heading}
@@ -252,7 +288,76 @@ async function Archive({ heading, limit, category }: ArchiveBlock) {
   );
 }
 
-export function RenderBlocks({ blocks }: { blocks: Page["layout"] }) {
+/**
+ * Used by both Section and CTA. Custom properties scope to the element, so a
+ * custom CTA inside a custom section simply overrides it for its own subtree.
+ */
+function customColors(
+  background?: string | null,
+  heading?: string | null,
+  body?: string | null,
+): CSSProperties | undefined {
+  if (!background || !body) return undefined;
+
+  return {
+    backgroundColor: background,
+    color: body,
+    "--custom-heading": heading || body,
+    "--custom-body": body,
+  } as CSSProperties;
+}
+
+function Section({
+  section: { background, customBackground, customHeading, customBody, blocks },
+  layout,
+}: {
+  section: SectionBlock;
+  layout: PagesLayout;
+}) {
+  const custom =
+    background === "custom"
+      ? customColors(customBackground, customHeading, customBody)
+      : undefined;
+
+  return (
+    <section
+      className={cn(
+        "w-full py-16",
+        background === "muted" && "bg-muted",
+        custom && "custom-colors",
+      )}
+      style={custom}
+    >
+      <div
+        className={cn(
+          "mx-auto flex w-full flex-col gap-8",
+          MAX_WIDTH[layout.maxWidth ?? "3xl"],
+          PADDING_X[layout.paddingX ?? "6"],
+        )}
+      >
+        <RenderBlocks blocks={blocks} />
+      </div>
+    </section>
+  );
+}
+
+export function RenderSections({
+  sections,
+  layout,
+}: {
+  sections: Page["layout"];
+  layout: PagesLayout;
+}) {
+  return sections.map((section) => (
+    <Section key={section.id} section={section} layout={layout} />
+  ));
+}
+
+function RenderBlocks({
+  blocks,
+}: {
+  blocks: SectionBlock["blocks"] | SplitBlock["left"];
+}) {
   return blocks.map((block) => {
     switch (block.blockType) {
       case "hero":

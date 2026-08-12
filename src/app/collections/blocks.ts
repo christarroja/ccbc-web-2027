@@ -1,8 +1,53 @@
-import type { Block, TextFieldSingleValidation } from "payload";
+import type { Block, Field, TextFieldSingleValidation } from "payload";
 import { validations } from "payload";
 import { embedSrc } from "@/lib/embed";
+import { isHex } from "@/lib/contrast";
 
 const IMAGE_ONLY = { mimeType: { contains: "image" } };
+
+const HEX_MESSAGE = "Enter a hex colour, e.g. #f4f1ea.";
+
+const validateHexColor: TextFieldSingleValidation = (value, options) => {
+  const builtIn = validations.text(value, options);
+  if (builtIn !== true) return builtIn;
+
+  if (!isHex(value)) return HEX_MESSAGE;
+
+  return true;
+};
+
+const colorPicker = (
+  name: string,
+  label: string,
+  description: string,
+): Field => ({
+  name,
+  type: "text",
+  validate: validateHexColor,
+  label,
+  admin: {
+    width: "33%",
+    description,
+    components: { Field: "/components/admin/ColorPickerField#ColorPickerField" },
+  },
+});
+
+/** Shared by Section and CTA. Shown only when `background` is "custom". */
+const customColorRow: Field = {
+  type: "row",
+  admin: {
+    condition: (_, siblingData) => siblingData?.background === "custom",
+  },
+  fields: [
+    colorPicker("customBackground", "Background colour", "The surface itself."),
+    colorPicker("customHeading", "Heading colour", "Headings inside it."),
+    colorPicker(
+      "customBody",
+      "Body text colour",
+      "Paragraphs, captions and lists.",
+    ),
+  ],
+};
 
 export const Hero: Block = {
   slug: "hero",
@@ -58,6 +103,21 @@ export const CallToAction: Block = {
       ],
       admin: { description: "How the heading, text and buttons line up." },
     },
+    {
+      name: "background",
+      type: "select",
+      defaultValue: "muted",
+      options: [
+        { label: "Muted (subtle grey)", value: "muted" },
+        { label: "None — blend into the section", value: "none" },
+        { label: "Custom colours", value: "custom" },
+      ],
+      admin: {
+        description:
+          "The card behind this block. Muted follows the site theme; custom colours are fixed values and will not adapt.",
+      },
+    },
+    customColorRow,
     {
       name: "links",
       type: "array",
@@ -233,6 +293,54 @@ export const Archive: Block = {
         description:
           "Leave empty to show the latest posts from every category.",
       },
+    },
+  ],
+};
+
+/**
+ * The band an editor lays a page out with. Full width by default; how wide the
+ * content runs inside it comes from the Pages Layout global, not from here, so
+ * that every page on the site keeps the same measure.
+ *
+ * Not listed in its own `blocks` array — sections do not nest, for the same
+ * reason Split does not.
+ */
+export const Section: Block = {
+  slug: "section",
+  interfaceName: "SectionBlock",
+  fields: [
+    {
+      name: "background",
+      type: "select",
+      defaultValue: "default",
+      options: [
+        { label: "Default (page background)", value: "default" },
+        { label: "Muted (subtle grey)", value: "muted" },
+        { label: "Custom colours", value: "custom" },
+      ],
+      admin: {
+        description:
+          "Default and Muted follow the site theme. Custom colours are fixed values and will not adapt.",
+      },
+    },
+    customColorRow,
+    {
+      name: "blocks",
+      type: "blocks",
+      required: true,
+      minRows: 1,
+      labels: { singular: "Block", plural: "Blocks" },
+      blocks: [
+        Hero,
+        Content,
+        MediaBlock,
+        CallToAction,
+        Accordion,
+        Split,
+        Gallery,
+        Embed,
+        Archive,
+      ],
     },
   ],
 };

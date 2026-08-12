@@ -93,8 +93,12 @@ export interface Config {
     defaultIDType: number;
   };
   fallbackLocale: null;
-  globals: {};
-  globalsSelect: {};
+  globals: {
+    'pages-layout': PagesLayout;
+  };
+  globalsSelect: {
+    'pages-layout': PagesLayoutSelect<false> | PagesLayoutSelect<true>;
+  };
   locale: null;
   widgets: {
     collections: CollectionsWidget;
@@ -238,17 +242,10 @@ export interface Page {
    * Nests this page — About → Our Team gives /about/our-team.
    */
   parent?: (number | null) | Page;
-  layout: (
-    | HeroBlock
-    | ContentBlock
-    | MediaBlock
-    | CallToActionBlock
-    | AccordionBlock
-    | SplitBlock
-    | GalleryBlock
-    | EmbedBlock
-    | ArchiveBlock
-  )[];
+  /**
+   * A page is a stack of sections. Blocks go inside a section.
+   */
+  layout: SectionBlock[];
   meta?: {
     /**
      * Defaults to the page title.
@@ -263,6 +260,42 @@ export interface Page {
   updatedAt: string;
   createdAt: string;
   _status?: ('draft' | 'published') | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SectionBlock".
+ */
+export interface SectionBlock {
+  /**
+   * Default and Muted follow the site theme. Custom colours are fixed values and will not adapt.
+   */
+  background?: ('default' | 'muted' | 'custom') | null;
+  /**
+   * The surface itself.
+   */
+  customBackground?: string | null;
+  /**
+   * Headings inside it.
+   */
+  customHeading?: string | null;
+  /**
+   * Paragraphs, captions and lists.
+   */
+  customBody?: string | null;
+  blocks: (
+    | HeroBlock
+    | ContentBlock
+    | MediaBlock
+    | CallToActionBlock
+    | AccordionBlock
+    | SplitBlock
+    | GalleryBlock
+    | EmbedBlock
+    | ArchiveBlock
+  )[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'section';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -322,6 +355,22 @@ export interface CallToActionBlock {
    * How the heading, text and buttons line up.
    */
   align?: ('left' | 'center') | null;
+  /**
+   * The card behind this block. Muted follows the site theme; custom colours are fixed values and will not adapt.
+   */
+  background?: ('muted' | 'none' | 'custom') | null;
+  /**
+   * The surface itself.
+   */
+  customBackground?: string | null;
+  /**
+   * Headings inside it.
+   */
+  customHeading?: string | null;
+  /**
+   * Paragraphs, captions and lists.
+   */
+  customBody?: string | null;
   /**
    * Up to two buttons. Leave empty for no button.
    */
@@ -599,15 +648,7 @@ export interface PagesSelect<T extends boolean = true> {
   layout?:
     | T
     | {
-        hero?: T | HeroBlockSelect<T>;
-        content?: T | ContentBlockSelect<T>;
-        media?: T | MediaBlockSelect<T>;
-        cta?: T | CallToActionBlockSelect<T>;
-        accordion?: T | AccordionBlockSelect<T>;
-        split?: T | SplitBlockSelect<T>;
-        gallery?: T | GalleryBlockSelect<T>;
-        embed?: T | EmbedBlockSelect<T>;
-        archive?: T | ArchiveBlockSelect<T>;
+        section?: T | SectionBlockSelect<T>;
       };
   meta?:
     | T
@@ -619,6 +660,31 @@ export interface PagesSelect<T extends boolean = true> {
   updatedAt?: T;
   createdAt?: T;
   _status?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SectionBlock_select".
+ */
+export interface SectionBlockSelect<T extends boolean = true> {
+  background?: T;
+  customBackground?: T;
+  customHeading?: T;
+  customBody?: T;
+  blocks?:
+    | T
+    | {
+        hero?: T | HeroBlockSelect<T>;
+        content?: T | ContentBlockSelect<T>;
+        media?: T | MediaBlockSelect<T>;
+        cta?: T | CallToActionBlockSelect<T>;
+        accordion?: T | AccordionBlockSelect<T>;
+        split?: T | SplitBlockSelect<T>;
+        gallery?: T | GalleryBlockSelect<T>;
+        embed?: T | EmbedBlockSelect<T>;
+        archive?: T | ArchiveBlockSelect<T>;
+      };
+  id?: T;
+  blockName?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -658,6 +724,10 @@ export interface CallToActionBlockSelect<T extends boolean = true> {
   heading?: T;
   text?: T;
   align?: T;
+  background?: T;
+  customBackground?: T;
+  customHeading?: T;
+  customBody?: T;
   links?:
     | T
     | {
@@ -777,6 +847,34 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages-layout".
+ */
+export interface PagesLayout {
+  id: number;
+  /**
+   * How wide content runs inside a section. The section itself always spans the full window.
+   */
+  maxWidth?: ('3xl' | '4xl' | '5xl') | null;
+  /**
+   * Breathing room at the left and right edges.
+   */
+  paddingX?: ('4' | '6' | '8') | null;
+  updatedAt?: string | null;
+  createdAt?: string | null;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "pages-layout_select".
+ */
+export interface PagesLayoutSelect<T extends boolean = true> {
+  maxWidth?: T;
+  paddingX?: T;
+  updatedAt?: T;
+  createdAt?: T;
+  globalType?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

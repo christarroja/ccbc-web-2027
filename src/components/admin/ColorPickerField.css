@@ -1,0 +1,60 @@
+/*
+ * Admin-panel styles. Tailwind is not loaded in the (payload) route group, so
+ * this uses Payload's own theme variables — which also means dark mode is
+ * handled for us, since Payload inverts its elevation scale.
+ */
+
+.color-picker-field__controls {
+  display: flex;
+  align-items: stretch;
+  gap: var(--base, 0.5rem);
+}
+
+.color-picker-field__swatch {
+  flex-shrink: 0;
+  inline-size: 3rem;
+  padding: 0;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 2px;
+  background: var(--theme-input-bg);
+  cursor: pointer;
+}
+
+.color-picker-field__swatch::-webkit-color-swatch-wrapper {
+  padding: 3px;
+}
+
+.color-picker-field__swatch::-webkit-color-swatch {
+  border: none;
+  border-radius: 1px;
+}
+
+/* Firefox draws its own border inside the control. */
+.color-picker-field__swatch::-moz-color-swatch {
+  border: none;
+  border-radius: 1px;
+}
+
+.color-picker-field__hex {
+  inline-size: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid var(--theme-elevation-150);
+  border-radius: 2px;
+  background: var(--theme-input-bg);
+  color: var(--theme-elevation-800);
+  font-family: inherit;
+  font-size: 1rem;
+}
+
+.color-picker-field__hex:focus-visible {
+  outline: none;
+  border-color: var(--theme-elevation-400);
+  box-shadow: 0 0 0 1px var(--theme-elevation-400);
+}
+
+.color-picker-field__swatch:disabled,
+.color-picker-field__hex:disabled {
+  cursor: not-allowed;
+  background: var(--theme-elevation-50);
+  color: var(--theme-elevation-400);
+}

@@ -6,17 +6,7 @@ import type {
 } from "payload";
 import { slugField, validations } from "payload";
 import { MAX_SEGMENTS, RESERVED_SLUGS } from "@/lib/pages";
-import {
-  Accordion,
-  Archive,
-  CallToAction,
-  Content,
-  Embed,
-  Gallery,
-  Hero,
-  MediaBlock,
-  Split,
-} from "./blocks";
+import { Section } from "./blocks";
 
 const validateSlug: TextFieldSingleValidation = (value, options) => {
   const builtIn = validations.text(value, options);
@@ -104,17 +94,11 @@ export const Pages: CollectionConfig = {
               type: "blocks",
               required: true,
               minRows: 1,
-              blocks: [
-                Hero,
-                Content,
-                MediaBlock,
-                CallToAction,
-                Accordion,
-                Split,
-                Gallery,
-                Embed,
-                Archive,
-              ],
+              blocks: [Section],
+              admin: {
+                description:
+                  "A page is a stack of sections. Blocks go inside a section.",
+              },
             },
           ],
         },

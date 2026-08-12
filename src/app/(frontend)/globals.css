@@ -53,6 +53,36 @@
   margin-right: 0.5em;
 }
 
+/*
+ * Custom-coloured surfaces (a Section band, a CTA card). The colours arrive as
+ * --custom-* set inline on the element, so nesting works by proximity.
+ */
+.custom-colors :where(h1, h2, h3, h4, h5, h6) {
+  color: var(--custom-heading);
+}
+
+.custom-colors :where(p, li, dd, dt, figcaption, blockquote, time) {
+  color: inherit;
+}
+
+.custom-colors .prose {
+  --tw-prose-body: var(--custom-body);
+  --tw-prose-lead: var(--custom-body);
+  --tw-prose-counters: var(--custom-body);
+  --tw-prose-bullets: var(--custom-body);
+  --tw-prose-captions: var(--custom-body);
+  --tw-prose-hr: var(--custom-body);
+  --tw-prose-quote-borders: var(--custom-body);
+  --tw-prose-th-borders: var(--custom-body);
+  --tw-prose-td-borders: var(--custom-body);
+  --tw-prose-headings: var(--custom-heading);
+  --tw-prose-links: var(--custom-heading);
+  --tw-prose-bold: var(--custom-heading);
+  --tw-prose-quotes: var(--custom-heading);
+  --tw-prose-code: var(--custom-heading);
+  --tw-prose-kbd: var(--custom-heading);
+}
+
 .prose h5,
 .prose h6 {
   color: var(--tw-prose-headings);

@@ -1,7 +1,7 @@
 import { notFound, permanentRedirect } from "next/navigation";
 import { HOME_SLUG } from "@/lib/pages";
-import { getPageByPath, pageMetadata } from "../pageData";
-import { RenderBlocks } from "../components/RenderBlocks";
+import { getPageByPath, getPagesLayout, pageMetadata } from "../pageData";
+import { RenderSections } from "../components/RenderBlocks";
 
 export async function generateMetadata(props: PageProps<"/[...slug]">) {
   const { slug } = await props.params;
@@ -13,12 +13,15 @@ export default async function CmsPage(props: PageProps<"/[...slug]">) {
 
   if (slug.length === 1 && slug[0] === HOME_SLUG) permanentRedirect("/");
 
-  const page = await getPageByPath(slug);
+  const [page, layout] = await Promise.all([
+    getPageByPath(slug),
+    getPagesLayout(),
+  ]);
   if (!page) notFound();
 
   return (
-    <main className="mx-auto w-full max-w-3xl px-6 py-16">
-      <RenderBlocks blocks={page.layout} />
+    <main>
+      <RenderSections sections={page.layout} layout={layout} />
     </main>
   );
 }
