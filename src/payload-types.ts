@@ -238,7 +238,18 @@ export interface Page {
    * Nests this page — About → Our Team gives /about/our-team.
    */
   parent?: (number | null) | Page;
-  layout: (HeroBlock | ContentBlock | MediaBlock | CallToActionBlock)[];
+  layout: (
+    | HeroBlock
+    | ContentBlock
+    | MediaBlock
+    | CallToActionBlock
+    | AccordionBlock
+    | SplitBlock
+    | GalleryBlock
+    | EmbedBlock
+    | ArchiveBlock
+    | SpacerBlock
+  )[];
   meta?: {
     /**
      * Defaults to the page title.
@@ -308,14 +319,133 @@ export interface MediaBlock {
 export interface CallToActionBlock {
   heading: string;
   text?: string | null;
-  linkLabel?: string | null;
   /**
-   * /about or https://example.com
+   * How the heading, text and buttons line up.
    */
-  linkUrl?: string | null;
+  align?: ('left' | 'center') | null;
+  /**
+   * Up to two buttons. Leave empty for no button.
+   */
+  links?:
+    | {
+        label: string;
+        /**
+         * /about or https://example.com
+         */
+        url: string;
+        style?: ('primary' | 'secondary') | null;
+        id?: string | null;
+      }[]
+    | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'cta';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "AccordionBlock".
+ */
+export interface AccordionBlock {
+  heading?: string | null;
+  items: {
+    title: string;
+    content: {
+      root: {
+        type: string;
+        children: {
+          type: any;
+          version: number;
+          [k: string]: unknown;
+        }[];
+        direction: ('ltr' | 'rtl') | null;
+        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
+        indent: number;
+        version: number;
+      };
+      [k: string]: unknown;
+    };
+    id?: string | null;
+  }[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'accordion';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SplitBlock".
+ */
+export interface SplitBlock {
+  verticalAlign?: ('top' | 'middle') | null;
+  /**
+   * Stacks above the right column on small screens.
+   */
+  left: (ContentBlock | MediaBlock)[];
+  right: (ContentBlock | MediaBlock)[];
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'split';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GalleryBlock".
+ */
+export interface GalleryBlock {
+  heading?: string | null;
+  images: (number | Media)[];
+  columns?: ('2' | '3' | '4') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'gallery';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EmbedBlock".
+ */
+export interface EmbedBlock {
+  /**
+   * Paste the normal page link, e.g. https://www.youtube.com/watch?v=… — it is converted to an embed automatically.
+   */
+  url: string;
+  /**
+   * Describes the embed for screen readers, e.g. “Sunday service, 12 May”.
+   */
+  title: string;
+  caption?: string | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'embed';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ArchiveBlock".
+ */
+export interface ArchiveBlock {
+  heading?: string | null;
+  /**
+   * How many posts to show.
+   */
+  limit?: number | null;
+  /**
+   * Leave empty to show the latest posts from every category.
+   */
+  category?: (number | null) | Category;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'archive';
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SpacerBlock".
+ */
+export interface SpacerBlock {
+  variant?: ('space' | 'line') | null;
+  /**
+   * How much space, or how much room around the line.
+   */
+  size?: ('sm' | 'md' | 'lg') | null;
+  id?: string | null;
+  blockName?: string | null;
+  blockType: 'spacer';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -489,6 +619,12 @@ export interface PagesSelect<T extends boolean = true> {
         content?: T | ContentBlockSelect<T>;
         media?: T | MediaBlockSelect<T>;
         cta?: T | CallToActionBlockSelect<T>;
+        accordion?: T | AccordionBlockSelect<T>;
+        split?: T | SplitBlockSelect<T>;
+        gallery?: T | GalleryBlockSelect<T>;
+        embed?: T | EmbedBlockSelect<T>;
+        archive?: T | ArchiveBlockSelect<T>;
+        spacer?: T | SpacerBlockSelect<T>;
       };
   meta?:
     | T
@@ -538,8 +674,95 @@ export interface MediaBlockSelect<T extends boolean = true> {
 export interface CallToActionBlockSelect<T extends boolean = true> {
   heading?: T;
   text?: T;
-  linkLabel?: T;
-  linkUrl?: T;
+  align?: T;
+  links?:
+    | T
+    | {
+        label?: T;
+        url?: T;
+        style?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "AccordionBlock_select".
+ */
+export interface AccordionBlockSelect<T extends boolean = true> {
+  heading?: T;
+  items?:
+    | T
+    | {
+        title?: T;
+        content?: T;
+        id?: T;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SplitBlock_select".
+ */
+export interface SplitBlockSelect<T extends boolean = true> {
+  verticalAlign?: T;
+  left?:
+    | T
+    | {
+        content?: T | ContentBlockSelect<T>;
+        media?: T | MediaBlockSelect<T>;
+      };
+  right?:
+    | T
+    | {
+        content?: T | ContentBlockSelect<T>;
+        media?: T | MediaBlockSelect<T>;
+      };
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "GalleryBlock_select".
+ */
+export interface GalleryBlockSelect<T extends boolean = true> {
+  heading?: T;
+  images?: T;
+  columns?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "EmbedBlock_select".
+ */
+export interface EmbedBlockSelect<T extends boolean = true> {
+  url?: T;
+  title?: T;
+  caption?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "ArchiveBlock_select".
+ */
+export interface ArchiveBlockSelect<T extends boolean = true> {
+  heading?: T;
+  limit?: T;
+  category?: T;
+  id?: T;
+  blockName?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "SpacerBlock_select".
+ */
+export interface SpacerBlockSelect<T extends boolean = true> {
+  variant?: T;
+  size?: T;
   id?: T;
   blockName?: T;
 }

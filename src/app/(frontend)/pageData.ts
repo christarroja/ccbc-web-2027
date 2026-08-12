@@ -43,6 +43,23 @@ export async function getPageByPath(segments: string[]) {
   return page && matchesAncestry(page, segments) ? page : null;
 }
 
+/** Latest published posts for the `archive` block. */
+export async function getArchivePosts(
+  limit: number,
+  categoryId?: number | null,
+) {
+  const payload = await getPayload({ config });
+  const { docs } = await payload.find({
+    collection: "posts",
+    overrideAccess: false,
+    sort: "-publishedAt",
+    limit,
+    depth: 1, // populate heroImage for the thumbnail
+    ...(categoryId && { where: { categories: { equals: categoryId } } }),
+  });
+  return docs;
+}
+
 export function pageMetadata(page: Page | null): Metadata {
   if (!page) return { title: "Not found" };
 

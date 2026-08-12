@@ -6,7 +6,18 @@ import type {
 } from "payload";
 import { slugField, validations } from "payload";
 import { MAX_SEGMENTS, RESERVED_SLUGS } from "@/lib/pages";
-import { CallToAction, Content, Hero, MediaBlock } from "./blocks";
+import {
+  Accordion,
+  Archive,
+  CallToAction,
+  Content,
+  Embed,
+  Gallery,
+  Hero,
+  MediaBlock,
+  Spacer,
+  Split,
+} from "./blocks";
 
 /**
  * Only the first URL segment can be shadowed, so /about/blog would in fact be
@@ -108,7 +119,18 @@ export const Pages: CollectionConfig = {
               type: "blocks",
               required: true,
               minRows: 1,
-              blocks: [Hero, Content, MediaBlock, CallToAction],
+              blocks: [
+                Hero,
+                Content,
+                MediaBlock,
+                CallToAction,
+                Accordion,
+                Split,
+                Gallery,
+                Embed,
+                Archive,
+                Spacer,
+              ],
             },
           ],
         },
