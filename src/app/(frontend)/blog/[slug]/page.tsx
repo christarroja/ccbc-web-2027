@@ -6,6 +6,15 @@ import { RichText } from "@payloadcms/richtext-lexical/react";
 import config from "@payload-config";
 import { doc } from "../../pageData";
 import { converters } from "../../components/richTextConverters";
+import { Badge } from "@/components/ui/badge";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 async function getPost(slug: string) {
   const payload = await getPayload({ config });
@@ -35,19 +44,29 @@ export default async function PostPage(props: PageProps<"/blog/[slug]">) {
 
   return (
     <main className="mx-auto w-full max-w-3xl px-6 py-16">
-      <Link href="/blog" className="text-sm text-zinc-500 hover:underline">
-        ← Blog
-      </Link>
+      <Breadcrumb>
+        <BreadcrumbList>
+          <BreadcrumbItem>
+            <BreadcrumbLink render={<Link href="/blog" />}>
+              Blog
+            </BreadcrumbLink>
+          </BreadcrumbItem>
+          <BreadcrumbSeparator />
+          <BreadcrumbItem>
+            <BreadcrumbPage>{post.title}</BreadcrumbPage>
+          </BreadcrumbItem>
+        </BreadcrumbList>
+      </Breadcrumb>
       {categories.length > 0 && (
         <nav className="mt-6 flex flex-wrap gap-2">
           {categories.map((cat) => (
-            <Link
+            <Badge
               key={cat.id}
-              href={`/blog?category=${cat.slug}`}
-              className="rounded-full bg-zinc-100 px-2.5 py-0.5 text-xs font-medium text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
+              variant="secondary"
+              render={<Link href={`/blog?category=${cat.slug}`} />}
             >
               {cat.title}
-            </Link>
+            </Badge>
           ))}
         </nav>
       )}

@@ -16,6 +16,13 @@ import type {
 import { embedSrc } from "@/lib/embed";
 import { doc, getArchivePosts } from "../pageData";
 import { converters } from "./richTextConverters";
+import { Button } from "@/components/ui/button";
+import {
+  Accordion as AccordionRoot,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 function Hero({ heading, subheading, image }: HeroBlock) {
   const img = doc(image);
@@ -77,26 +84,24 @@ function CallToAction({ heading, text, align, links }: CallToActionBlock) {
 
   return (
     <section
-      className={`my-8 rounded-lg bg-zinc-100 p-8 dark:bg-zinc-800 ${centered ? "text-center" : ""}`}
+      className={`my-8 rounded-lg bg-muted p-8 ${centered ? "text-center" : ""}`}
     >
       <h2 className="text-2xl font-semibold tracking-tight">{heading}</h2>
-      {text && <p className="mt-2 text-zinc-600 dark:text-zinc-400">{text}</p>}
+      {text && <p className="mt-2 text-muted-foreground">{text}</p>}
       {links && links.length > 0 && (
         <div
           className={`mt-4 flex flex-wrap gap-3 ${centered ? "justify-center" : ""}`}
         >
           {links.map((link) => (
-            <Link
+            <Button
               key={link.id}
-              href={link.url}
-              className={
-                link.style === "secondary"
-                  ? "inline-block rounded-full border border-zinc-400 px-4 py-2 text-sm font-medium hover:bg-zinc-200 dark:border-zinc-500 dark:hover:bg-zinc-700"
-                  : "inline-block rounded-full bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-700 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-300"
-              }
+              variant={link.style === "secondary" ? "outline" : "default"}
+              size="lg"
+              nativeButton={false}
+              render={<Link href={link.url} />}
             >
               {link.label}
-            </Link>
+            </Button>
           ))}
         </div>
       )}
@@ -112,24 +117,18 @@ function Accordion({ heading, items }: AccordionBlock) {
           {heading}
         </h2>
       )}
-      <div className="divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
+      <AccordionRoot multiple>
         {items.map((item) => (
-          <details key={item.id} className="group py-4">
-            <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-medium">
-              {item.title}
-              <span
-                aria-hidden="true"
-                className="text-zinc-400 transition-transform group-open:rotate-45"
-              >
-                +
-              </span>
-            </summary>
-            <div className="prose dark:prose-invert mt-3 max-w-none">
-              <RichText data={item.content} converters={converters} />
-            </div>
-          </details>
+          <AccordionItem key={item.id} value={item.id}>
+            <AccordionTrigger>{item.title}</AccordionTrigger>
+            <AccordionContent>
+              <div className="prose dark:prose-invert max-w-none">
+                <RichText data={item.content} converters={converters} />
+              </div>
+            </AccordionContent>
+          </AccordionItem>
         ))}
-      </div>
+      </AccordionRoot>
     </section>
   );
 }

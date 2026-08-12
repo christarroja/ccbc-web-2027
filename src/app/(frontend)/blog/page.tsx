@@ -4,6 +4,14 @@ import { notFound } from "next/navigation";
 import { getPayload } from "payload";
 import config from "@payload-config";
 import { doc } from "../pageData";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export const metadata = { title: "Blog" };
 
@@ -56,18 +64,18 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
           {[{ slug: undefined, title: "All" }, ...categories].map((cat) => {
             const isActive = activeCategory === cat.slug;
             return (
-              <Link
+              <Badge
                 key={cat.slug ?? "all"}
-                href={cat.slug ? `/blog?category=${cat.slug}` : "/blog"}
-                aria-current={isActive ? "page" : undefined}
-                className={`rounded-full px-3 py-1 text-sm ${
-                  isActive
-                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                    : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                }`}
+                variant={isActive ? "default" : "outline"}
+                render={
+                  <Link
+                    href={cat.slug ? `/blog?category=${cat.slug}` : "/blog"}
+                    aria-current={isActive ? "page" : undefined}
+                  />
+                }
               >
                 {cat.title}
-              </Link>
+              </Badge>
             );
           })}
         </nav>
@@ -130,36 +138,31 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
       </ul>
 
       {totalPages > 1 && (
-        <nav
-          aria-label="Pagination"
-          className="mt-12 flex items-center justify-between border-t border-zinc-200 pt-6 text-sm dark:border-zinc-800"
-        >
-          {hasPrevPage ? (
-            <Link
-              href={hrefFor(currentPage - 1)}
-              rel="prev"
-              className="text-zinc-700 hover:underline dark:text-zinc-300"
-            >
-              ← Previous
-            </Link>
-          ) : (
-            <span />
-          )}
-          <span className="text-zinc-500">
+        <Pagination className="mt-12 justify-between border-t border-border pt-6">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href={hasPrevPage ? hrefFor(currentPage - 1) : undefined}
+                rel="prev"
+                aria-disabled={!hasPrevPage}
+                className={!hasPrevPage ? "pointer-events-none opacity-50" : undefined}
+              />
+            </PaginationItem>
+          </PaginationContent>
+          <span className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </span>
-          {hasNextPage ? (
-            <Link
-              href={hrefFor(currentPage + 1)}
-              rel="next"
-              className="text-zinc-700 hover:underline dark:text-zinc-300"
-            >
-              Next →
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationNext
+                href={hasNextPage ? hrefFor(currentPage + 1) : undefined}
+                rel="next"
+                aria-disabled={!hasNextPage}
+                className={!hasNextPage ? "pointer-events-none opacity-50" : undefined}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </main>
   );
