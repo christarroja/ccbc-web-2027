@@ -3,6 +3,15 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPayload } from "payload";
 import config from "@payload-config";
+import { doc } from "../pageData";
+import { Badge } from "@/components/ui/badge";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 
 export const metadata = { title: "Blog" };
 
@@ -11,10 +20,8 @@ const PER_PAGE = 10;
 export default async function BlogIndex(props: PageProps<"/blog">) {
   const { category, page } = await props.searchParams;
   const activeCategory = typeof category === "string" ? category : undefined;
-  // NaN, negatives and fractions all collapse to page 1.
   const currentPage = Math.max(1, Math.floor(Number(page)) || 1);
 
-  // Keeps the category filter attached when paging, and drops noise from the URL.
   const hrefFor = (target: number) => {
     const params = new URLSearchParams();
     if (activeCategory) params.set("category", activeCategory);
@@ -28,11 +35,11 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
     await Promise.all([
       payload.find({
         collection: "posts",
-        overrideAccess: false, // enforce the collection's published-only read access
+        overrideAccess: false,
         sort: "-publishedAt",
         limit: PER_PAGE,
         page: currentPage,
-        depth: 1, // populate heroImage for the thumbnail
+        depth: 1,
         ...(activeCategory && {
           where: { "categories.slug": { equals: activeCategory } },
         }),
@@ -46,7 +53,6 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
       }),
     ]);
 
-  // A page past the end is a bad URL, not an empty blog.
   if (currentPage > 1 && docs.length === 0) notFound();
 
   return (
@@ -58,18 +64,18 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
           {[{ slug: undefined, title: "All" }, ...categories].map((cat) => {
             const isActive = activeCategory === cat.slug;
             return (
-              <Link
+              <Badge
                 key={cat.slug ?? "all"}
-                href={cat.slug ? `/blog?category=${cat.slug}` : "/blog"}
-                aria-current={isActive ? "page" : undefined}
-                className={`rounded-full px-3 py-1 text-sm ${
-                  isActive
-                    ? "bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900"
-                    : "bg-zinc-100 text-zinc-700 hover:bg-zinc-200 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-                }`}
+                variant={isActive ? "default" : "outline"}
+                render={
+                  <Link
+                    href={cat.slug ? `/blog?category=${cat.slug}` : "/blog"}
+                    aria-current={isActive ? "page" : undefined}
+                  />
+                }
               >
                 {cat.title}
-              </Link>
+              </Badge>
             );
           })}
         </nav>
@@ -84,8 +90,7 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
       )}
       <ul className="mt-10 flex flex-col gap-10">
         {docs.map((post) => {
-          const thumb =
-            typeof post.heroImage === "object" ? post.heroImage : null;
+          const thumb = doc(post.heroImage);
 
           return (
             <li key={post.id}>
@@ -99,7 +104,6 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
                     className="h-30 w-40 shrink-0 rounded-lg object-cover"
                   />
                 ) : (
-                  // No media doc means no alt text exists, so the title stands in.
                   <div
                     aria-hidden="true"
                     className="flex h-30 w-40 shrink-0 items-center justify-center rounded-lg bg-zinc-100 p-3 text-center text-xs text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400"
@@ -134,36 +138,31 @@ export default async function BlogIndex(props: PageProps<"/blog">) {
       </ul>
 
       {totalPages > 1 && (
-        <nav
-          aria-label="Pagination"
-          className="mt-12 flex items-center justify-between border-t border-zinc-200 pt-6 text-sm dark:border-zinc-800"
-        >
-          {hasPrevPage ? (
-            <Link
-              href={hrefFor(currentPage - 1)}
-              rel="prev"
-              className="text-zinc-700 hover:underline dark:text-zinc-300"
-            >
-              ← Previous
-            </Link>
-          ) : (
-            <span />
-          )}
-          <span className="text-zinc-500">
+        <Pagination className="mt-12 justify-between border-t border-border pt-6">
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationPrevious
+                href={hasPrevPage ? hrefFor(currentPage - 1) : undefined}
+                rel="prev"
+                aria-disabled={!hasPrevPage}
+                className={!hasPrevPage ? "pointer-events-none opacity-50" : undefined}
+              />
+            </PaginationItem>
+          </PaginationContent>
+          <span className="text-sm text-muted-foreground">
             Page {currentPage} of {totalPages}
           </span>
-          {hasNextPage ? (
-            <Link
-              href={hrefFor(currentPage + 1)}
-              rel="next"
-              className="text-zinc-700 hover:underline dark:text-zinc-300"
-            >
-              Next →
-            </Link>
-          ) : (
-            <span />
-          )}
-        </nav>
+          <PaginationContent>
+            <PaginationItem>
+              <PaginationNext
+                href={hasNextPage ? hrefFor(currentPage + 1) : undefined}
+                rel="next"
+                aria-disabled={!hasNextPage}
+                className={!hasNextPage ? "pointer-events-none opacity-50" : undefined}
+              />
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       )}
     </main>
   );

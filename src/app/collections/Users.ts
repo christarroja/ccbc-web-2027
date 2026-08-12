@@ -6,8 +6,5 @@ export const Users: CollectionConfig = {
     useAsTitle: "email",
   },
   auth: true,
-  fields: [
-    // Email added by default
-    { name: "name", type: "text" }, // used as the post byline
-  ],
+  fields: [{ name: "name", type: "text" }],
 };
