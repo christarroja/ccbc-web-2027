@@ -11,27 +11,14 @@ import type {
   HeroBlock,
   MediaBlock,
   Page,
-  SpacerBlock,
   SplitBlock,
 } from "@/payload-types";
 import { embedSrc } from "@/lib/embed";
-import { getArchivePosts } from "../pageData";
-import { ImageWithFallback } from "./ImageWithFallback";
+import { doc, getArchivePosts } from "../pageData";
 import { converters } from "./richTextConverters";
 
-// Tailwind only ships classes it can see as literal strings, so every variant
-// has to be spelled out here rather than built with template literals.
-const GALLERY_COLUMNS = {
-  "2": "sm:grid-cols-2",
-  "3": "sm:grid-cols-2 md:grid-cols-3",
-  "4": "sm:grid-cols-2 md:grid-cols-4",
-} as const;
-
-const SPACER_SIZE = { sm: "h-6", md: "h-12", lg: "h-24" } as const;
-const RULE_SPACING = { sm: "my-6", md: "my-12", lg: "my-24" } as const;
-
 function Hero({ heading, subheading, image }: HeroBlock) {
-  const doc = typeof image === "object" ? image : null;
+  const img = doc(image);
 
   return (
     <section className="py-8">
@@ -41,12 +28,12 @@ function Hero({ heading, subheading, image }: HeroBlock) {
           {subheading}
         </p>
       )}
-      {doc?.url && doc.width && doc.height && (
-        <ImageWithFallback
-          src={doc.url}
-          alt={doc.alt}
-          width={doc.width}
-          height={doc.height}
+      {img?.url && img.width && img.height && (
+        <Image
+          src={img.url}
+          alt={img.alt}
+          width={img.width}
+          height={img.height}
           className="mt-8 h-auto w-full rounded-lg"
           priority
         />
@@ -64,20 +51,22 @@ function Content({ richText }: ContentBlock) {
 }
 
 function Media({ image, caption }: MediaBlock) {
-  const doc = typeof image === "object" ? image : null;
-  if (!doc?.url || !doc.width || !doc.height) return null;
+  const img = doc(image);
+  if (!img?.url || !img.width || !img.height) return null;
 
   return (
     <figure className="py-8">
-      <ImageWithFallback
-        src={doc.url}
-        alt={doc.alt}
-        width={doc.width}
-        height={doc.height}
+      <Image
+        src={img.url}
+        alt={img.alt}
+        width={img.width}
+        height={img.height}
         className="h-auto w-full rounded-lg"
       />
       {caption && (
-        <figcaption className="mt-2 text-sm text-zinc-500">{caption}</figcaption>
+        <figcaption className="mt-2 text-sm text-zinc-500">
+          {caption}
+        </figcaption>
       )}
     </figure>
   );
@@ -115,12 +104,13 @@ function CallToAction({ heading, text, align, links }: CallToActionBlock) {
   );
 }
 
-/** Native <details>, so it works with no JavaScript and is keyboard accessible. */
 function Accordion({ heading, items }: AccordionBlock) {
   return (
     <section className="py-8">
       {heading && (
-        <h2 className="mb-4 text-2xl font-semibold tracking-tight">{heading}</h2>
+        <h2 className="mb-4 text-2xl font-semibold tracking-tight">
+          {heading}
+        </h2>
       )}
       <div className="divide-y divide-zinc-200 border-y border-zinc-200 dark:divide-zinc-800 dark:border-zinc-800">
         {items.map((item) => (
@@ -159,19 +149,21 @@ function Split({ verticalAlign, left, right }: SplitBlock) {
   );
 }
 
-function Gallery({ heading, images, columns }: GalleryBlock) {
+function Gallery({ heading, images }: GalleryBlock) {
   const docs = images.filter((i) => typeof i === "object");
   if (docs.length === 0) return null;
 
   return (
     <section className="py-8">
       {heading && (
-        <h2 className="mb-4 text-2xl font-semibold tracking-tight">{heading}</h2>
+        <h2 className="mb-4 text-2xl font-semibold tracking-tight">
+          {heading}
+        </h2>
       )}
-      <div className={`grid grid-cols-1 gap-4 ${GALLERY_COLUMNS[columns ?? "3"]}`}>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {docs.map((doc) =>
           doc.url && doc.width && doc.height ? (
-            <ImageWithFallback
+            <Image
               key={doc.id}
               src={doc.url}
               alt={doc.alt}
@@ -187,8 +179,6 @@ function Gallery({ heading, images, columns }: GalleryBlock) {
 }
 
 function Embed({ url, title, caption }: EmbedBlock) {
-  // Validated on save, re-checked here: the allowlist is what keeps an
-  // arbitrary pasted URL out of the iframe src.
   const src = embedSrc(url);
   if (!src) return null;
 
@@ -203,7 +193,9 @@ function Embed({ url, title, caption }: EmbedBlock) {
         className="aspect-video w-full rounded-lg border-0"
       />
       {caption && (
-        <figcaption className="mt-2 text-sm text-zinc-500">{caption}</figcaption>
+        <figcaption className="mt-2 text-sm text-zinc-500">
+          {caption}
+        </figcaption>
       )}
     </figure>
   );
@@ -217,11 +209,13 @@ async function Archive({ heading, limit, category }: ArchiveBlock) {
   return (
     <section className="py-8">
       {heading && (
-        <h2 className="mb-4 text-2xl font-semibold tracking-tight">{heading}</h2>
+        <h2 className="mb-4 text-2xl font-semibold tracking-tight">
+          {heading}
+        </h2>
       )}
       <ul className="flex flex-col gap-6">
         {posts.map((post) => {
-          const thumb = typeof post.heroImage === "object" ? post.heroImage : null;
+          const thumb = doc(post.heroImage);
 
           return (
             <li key={post.id}>
@@ -259,19 +253,6 @@ async function Archive({ heading, limit, category }: ArchiveBlock) {
   );
 }
 
-function Spacer({ variant, size }: SpacerBlock) {
-  const key = size ?? "md";
-
-  if (variant === "line")
-    return (
-      <hr
-        className={`border-zinc-200 dark:border-zinc-800 ${RULE_SPACING[key]}`}
-      />
-    );
-
-  return <div aria-hidden="true" className={SPACER_SIZE[key]} />;
-}
-
 export function RenderBlocks({ blocks }: { blocks: Page["layout"] }) {
   return blocks.map((block) => {
     switch (block.blockType) {
@@ -293,8 +274,6 @@ export function RenderBlocks({ blocks }: { blocks: Page["layout"] }) {
         return <Embed key={block.id} {...block} />;
       case "archive":
         return <Archive key={block.id} {...block} />;
-      case "spacer":
-        return <Spacer key={block.id} {...block} />;
     }
   });
 }

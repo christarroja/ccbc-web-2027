@@ -248,7 +248,6 @@ export interface Page {
     | GalleryBlock
     | EmbedBlock
     | ArchiveBlock
-    | SpacerBlock
   )[];
   meta?: {
     /**
@@ -392,7 +391,6 @@ export interface SplitBlock {
 export interface GalleryBlock {
   heading?: string | null;
   images: (number | Media)[];
-  columns?: ('2' | '3' | '4') | null;
   id?: string | null;
   blockName?: string | null;
   blockType: 'gallery';
@@ -432,20 +430,6 @@ export interface ArchiveBlock {
   id?: string | null;
   blockName?: string | null;
   blockType: 'archive';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "SpacerBlock".
- */
-export interface SpacerBlock {
-  variant?: ('space' | 'line') | null;
-  /**
-   * How much space, or how much room around the line.
-   */
-  size?: ('sm' | 'md' | 'lg') | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'spacer';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -624,7 +608,6 @@ export interface PagesSelect<T extends boolean = true> {
         gallery?: T | GalleryBlockSelect<T>;
         embed?: T | EmbedBlockSelect<T>;
         archive?: T | ArchiveBlockSelect<T>;
-        spacer?: T | SpacerBlockSelect<T>;
       };
   meta?:
     | T
@@ -730,7 +713,6 @@ export interface SplitBlockSelect<T extends boolean = true> {
 export interface GalleryBlockSelect<T extends boolean = true> {
   heading?: T;
   images?: T;
-  columns?: T;
   id?: T;
   blockName?: T;
 }
@@ -753,16 +735,6 @@ export interface ArchiveBlockSelect<T extends boolean = true> {
   heading?: T;
   limit?: T;
   category?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "SpacerBlock_select".
- */
-export interface SpacerBlockSelect<T extends boolean = true> {
-  variant?: T;
-  size?: T;
   id?: T;
   blockName?: T;
 }

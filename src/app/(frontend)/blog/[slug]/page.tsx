@@ -1,16 +1,17 @@
+import Image from "next/image";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getPayload } from "payload";
 import { RichText } from "@payloadcms/richtext-lexical/react";
 import config from "@payload-config";
-import { ImageWithFallback } from "../../components/ImageWithFallback";
+import { doc } from "../../pageData";
 import { converters } from "../../components/richTextConverters";
 
 async function getPost(slug: string) {
   const payload = await getPayload({ config });
   const { docs } = await payload.find({
     collection: "posts",
-    overrideAccess: false, // enforce the collection's published-only read access
+    overrideAccess: false,
     where: { slug: { equals: slug } },
     limit: 1,
     depth: 1,
@@ -27,8 +28,8 @@ export default async function PostPage(props: PageProps<"/blog/[slug]">) {
   const post = await getPost((await props.params).slug);
   if (!post) notFound();
 
-  const hero = typeof post.heroImage === "object" ? post.heroImage : null;
-  const author = typeof post.author === "object" ? post.author : null;
+  const hero = doc(post.heroImage);
+  const author = doc(post.author);
   const categories =
     post.categories?.filter((c) => typeof c === "object") ?? [];
 
@@ -69,7 +70,7 @@ export default async function PostPage(props: PageProps<"/blog/[slug]">) {
         )}
       </p>
       {hero?.url && hero.width && hero.height && (
-        <ImageWithFallback
+        <Image
           src={hero.url}
           alt={hero.alt}
           width={hero.width}

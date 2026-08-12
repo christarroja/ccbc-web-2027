@@ -8,8 +8,8 @@ export const Posts: CollectionConfig = {
     defaultColumns: ["title", "author", "publishedAt", "_status"],
   },
   access: {
-    // Anyone can read published posts; logged-in users also see drafts.
-    read: ({ req }) => Boolean(req.user) || { _status: { equals: "published" } },
+    read: ({ req }) =>
+      Boolean(req.user) || { _status: { equals: "published" } },
   },
   versions: {
     drafts: true,

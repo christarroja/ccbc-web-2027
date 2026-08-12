@@ -11,8 +11,6 @@ export async function generateMetadata(props: PageProps<"/[...slug]">) {
 export default async function CmsPage(props: PageProps<"/[...slug]">) {
   const { slug } = await props.params;
 
-  // The homepage lives at /, so /home would be the same content at a second
-  // URL. Redirect rather than serve it twice.
   if (slug.length === 1 && slug[0] === HOME_SLUG) permanentRedirect("/");
 
   const page = await getPageByPath(slug);

@@ -2,8 +2,7 @@ import type { Block, TextFieldSingleValidation } from "payload";
 import { validations } from "payload";
 import { embedSrc } from "@/lib/embed";
 
-// Generic layout blocks — nothing church-specific lives here.
-// Each is small enough that separate files would cost more than they explain.
+const IMAGE_ONLY = { mimeType: { contains: "image" } };
 
 export const Hero: Block = {
   slug: "hero",
@@ -15,7 +14,7 @@ export const Hero: Block = {
       name: "image",
       type: "upload",
       relationTo: "media",
-      filterOptions: { mimeType: { contains: "image" } },
+      filterOptions: IMAGE_ONLY,
     },
   ],
 };
@@ -36,7 +35,7 @@ export const MediaBlock: Block = {
       type: "upload",
       relationTo: "media",
       required: true,
-      filterOptions: { mimeType: { contains: "image" } },
+      filterOptions: IMAGE_ONLY,
     },
     { name: "caption", type: "text" },
   ],
@@ -69,12 +68,20 @@ export const CallToAction: Block = {
         {
           type: "row",
           fields: [
-            { name: "label", type: "text", required: true, admin: { width: "50%" } },
+            {
+              name: "label",
+              type: "text",
+              required: true,
+              admin: { width: "50%" },
+            },
             {
               name: "url",
               type: "text",
               required: true,
-              admin: { width: "50%", description: "/about or https://example.com" },
+              admin: {
+                width: "50%",
+                description: "/about or https://example.com",
+              },
             },
           ],
         },
@@ -160,19 +167,7 @@ export const Gallery: Block = {
       relationTo: "media",
       hasMany: true,
       required: true,
-      filterOptions: { mimeType: { contains: "image" } },
-    },
-    // ponytail: plain responsive grid. Masonry/carousel are layout swaps in the
-    // component — add a `layout` select here when one is actually needed.
-    {
-      name: "columns",
-      type: "select",
-      defaultValue: "3",
-      options: [
-        { label: "2 across", value: "2" },
-        { label: "3 across", value: "3" },
-        { label: "4 across", value: "4" },
-      ],
+      filterOptions: IMAGE_ONLY,
     },
   ],
 };
@@ -234,35 +229,10 @@ export const Archive: Block = {
       name: "category",
       type: "relationship",
       relationTo: "categories",
-      admin: { description: "Leave empty to show the latest posts from every category." },
-    },
-  ],
-};
-
-export const Spacer: Block = {
-  slug: "spacer",
-  interfaceName: "SpacerBlock",
-  labels: { singular: "Spacer / Divider", plural: "Spacers / Dividers" },
-  fields: [
-    {
-      name: "variant",
-      type: "select",
-      defaultValue: "space",
-      options: [
-        { label: "Blank space", value: "space" },
-        { label: "Horizontal line", value: "line" },
-      ],
-    },
-    {
-      name: "size",
-      type: "select",
-      defaultValue: "md",
-      options: [
-        { label: "Small", value: "sm" },
-        { label: "Medium", value: "md" },
-        { label: "Large", value: "lg" },
-      ],
-      admin: { description: "How much space, or how much room around the line." },
+      admin: {
+        description:
+          "Leave empty to show the latest posts from every category.",
+      },
     },
   ],
 };

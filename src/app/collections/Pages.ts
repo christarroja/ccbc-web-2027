@@ -15,18 +15,10 @@ import {
   Gallery,
   Hero,
   MediaBlock,
-  Spacer,
   Split,
 } from "./blocks";
 
-/**
- * Only the first URL segment can be shadowed, so /about/blog would in fact be
- * fine. Banning the name outright is simpler than inspecting `parent`, and
- * costs little: slugs are globally unique, so it's one name either way.
- */
 const validateSlug: TextFieldSingleValidation = (value, options) => {
-  // A custom validate replaces the built-in one, so run that first or `required`
-  // and the length limits quietly stop being enforced.
   const builtIn = validations.text(value, options);
   if (builtIn !== true) return builtIn;
 
@@ -36,10 +28,6 @@ const validateSlug: TextFieldSingleValidation = (value, options) => {
   return true;
 };
 
-/**
- * Rejects the two bad parents `filterOptions` can't see: an indirect loop
- * (A → B → A) and nesting deeper than a URL is allowed to go.
- */
 const validateParent: RelationshipFieldSingleValidation = async (
   value,
   { id, req },
@@ -57,7 +45,7 @@ const validateParent: RelationshipFieldSingleValidation = async (
       collection: "pages",
       id: current as number,
       depth: 0,
-      req, // same transaction as the save being validated
+      req,
       disableErrors: true,
     });
     if (!ancestor) break;
@@ -76,18 +64,15 @@ export const Pages: CollectionConfig = {
     defaultColumns: ["title", "slug", "parent", "_status"],
   },
   access: {
-    // Anyone can read published pages; logged-in users also see drafts.
-    read: ({ req }) => Boolean(req.user) || { _status: { equals: "published" } },
+    read: ({ req }) =>
+      Boolean(req.user) || { _status: { equals: "published" } },
   },
   versions: {
     drafts: true,
   },
   fields: [
     { name: "title", type: "text", required: true },
-    // Slugs are unique site-wide, which is what lets a URL be resolved in one
-    // indexed query. Two pages can't both be "staff" under different parents.
     slugField({
-      // slugField returns a row wrapping [generateSlug checkbox, slug text].
       overrides: (field) => {
         const slug = field.fields.find(
           (f) => "name" in f && f.name === "slug",
@@ -102,9 +87,9 @@ export const Pages: CollectionConfig = {
       relationTo: "pages",
       admin: {
         position: "sidebar",
-        description: "Nests this page — About → Our Team gives /about/our-team.",
+        description:
+          "Nests this page — About → Our Team gives /about/our-team.",
       },
-      // Stops the obvious self-reference in the UI; validate catches the rest.
       filterOptions: ({ id }) => (id ? { id: { not_equals: id } } : true),
       validate: validateParent,
     },
@@ -129,7 +114,6 @@ export const Pages: CollectionConfig = {
                 Gallery,
                 Embed,
                 Archive,
-                Spacer,
               ],
             },
           ],
